@@ -3,8 +3,18 @@ import { ApplicationsTable } from "./components/ApplicationsTable";
 import { useApplications } from "./hooks/useApplications";
 
 export function App() {
-  const { applications, error, loading, add, update, remove } =
-    useApplications();
+  const {
+    applications,
+    error,
+    loading,
+    add,
+    update,
+    updateStatus,
+    remove,
+    sortField,
+    sortDirection,
+    sortBy,
+  } = useApplications();
 
   return (
     <main className="page">
@@ -25,6 +35,10 @@ export function App() {
         loading={loading}
         remove={remove}
         update={update}
+        updateStatus={updateStatus}
+        sortField={sortField}
+        sortDirection={sortDirection}
+        sortBy={sortBy}
       />
     </main>
   );

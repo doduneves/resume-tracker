@@ -1,12 +1,23 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Application } from "../../domain/application";
 import { useApplicationService } from "./ApplicationServiceContext";
+import {
+  compareApplications,
+  DEFAULT_SORT_DIRECTION,
+  DEFAULT_SORT_FIELD,
+  type SortDirection,
+  type SortableField,
+} from "../sortApplications";
 
 export function useApplications() {
   const service = useApplicationService();
   const [applications, setApplications] = useState<Application[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sortField, setSortField] = useState<SortableField>(DEFAULT_SORT_FIELD);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(
+    DEFAULT_SORT_DIRECTION,
+  );
 
   const refresh = useCallback(async () => {
     try {
@@ -23,6 +34,25 @@ export function useApplications() {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  const sortedApplications = useMemo(
+    () =>
+      [...applications].sort((a, b) =>
+        compareApplications(a, b, sortField, sortDirection),
+      ),
+    [applications, sortDirection, sortField],
+  );
+
+  const sortBy = useCallback((field: SortableField) => {
+    setSortField((current) => {
+      if (current === field) {
+        setSortDirection((direction) => (direction === "asc" ? "desc" : "asc"));
+        return current;
+      }
+      setSortDirection(field === "lastUpdated" || field === "nextStep" ? "desc" : "asc");
+      return field;
+    });
+  }, []);
 
   const add = useCallback(async () => {
     try {
@@ -47,6 +77,20 @@ export function useApplications() {
     [refresh, service],
   );
 
+  const updateStatus = useCallback(
+    async (id: string, status: string) => {
+      try {
+        await service.updateStatus(id, status);
+        await refresh();
+      } catch (cause) {
+        setError(
+          cause instanceof Error ? cause.message : "Failed to update status",
+        );
+      }
+    },
+    [refresh, service],
+  );
+
   const remove = useCallback(
     async (id: string) => {
       try {
@@ -61,5 +105,16 @@ export function useApplications() {
     [refresh, service],
   );
 
-  return { applications, error, loading, add, update, remove };
+  return {
+    applications: sortedApplications,
+    error,
+    loading,
+    add,
+    update,
+    updateStatus,
+    remove,
+    sortField,
+    sortDirection,
+    sortBy,
+  };
 }

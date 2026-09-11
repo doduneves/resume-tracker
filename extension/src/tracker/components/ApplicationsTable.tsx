@@ -1,39 +1,49 @@
-import type { ChangeEvent } from "react";
+import { useCallback, useEffect, useState, type KeyboardEvent } from "react";
+import { todayIsoDate } from "../../application/services/dates";
 import type { Application } from "../../domain/application";
 import type { ResumeId } from "../../domain/resume";
-import { DEFAULT_STAGES, TERMINAL_STATUSES } from "../../domain/status";
+import { statusOptionsFor } from "../../domain/status";
 import { createTimelineEntry } from "../../domain/timeline";
-import { todayIsoDate } from "../../application/services/dates";
+import { useVocabularyService } from "../hooks/VocabularyServiceContext";
+import {
+  notesText,
+  rowStatusClass,
+  splitList,
+} from "../applicationView";
+import type { SortDirection, SortableField } from "../sortApplications";
+import { InlineTextCell } from "./InlineTextCell";
+import { JobTitleCombobox } from "./JobTitleCombobox";
+import { StagesCell } from "./StagesCell";
 
 type TableField =
   | "company"
-  | "status"
   | "jobTitle"
+  | "status"
+  | "stages"
+  | "jobUrl"
+  | "resumeId"
   | "nextStep"
   | "lastUpdated"
   | "salary"
   | "rating"
   | "matchLevel"
   | "stack"
-  | "jobUrl"
-  | "resumeId"
-  | "stages"
   | "contact"
   | "notes";
 
 const COLUMNS: { key: TableField; label: string }[] = [
   { key: "company", label: "Company" },
-  { key: "status", label: "Status" },
   { key: "jobTitle", label: "Job Title" },
-  { key: "nextStep", label: "Next Step" },
+  { key: "status", label: "Status" },
+  { key: "stages", label: "Stages" },
+  { key: "jobUrl", label: "Job URL" },
+  { key: "resumeId", label: "Resume" },
+  { key: "nextStep", label: "Next step" },
   { key: "lastUpdated", label: "Last Updated" },
   { key: "salary", label: "Salary" },
   { key: "rating", label: "Rating" },
   { key: "matchLevel", label: "Match Level" },
   { key: "stack", label: "Stack" },
-  { key: "jobUrl", label: "Job URL" },
-  { key: "resumeId", label: "Resume" },
-  { key: "stages", label: "Stages" },
   { key: "contact", label: "Contact" },
   { key: "notes", label: "Notes" },
 ];
@@ -43,6 +53,10 @@ type ApplicationsTableProps = {
   loading: boolean;
   remove: (id: string) => Promise<void> | void;
   update: (application: Application) => Promise<void> | void;
+  updateStatus: (id: string, status: string) => Promise<void> | void;
+  sortField: SortableField;
+  sortDirection: SortDirection;
+  sortBy: (field: SortableField) => void;
 };
 
 export function ApplicationsTable({
@@ -50,7 +64,13 @@ export function ApplicationsTable({
   loading,
   remove,
   update,
+  updateStatus,
+  sortField,
+  sortDirection,
+  sortBy,
 }: ApplicationsTableProps) {
+  const { suggestions, remember } = useJobTitleSuggestions();
+
   if (loading) {
     return <p className="muted">Loading applications…</p>;
   }
@@ -63,22 +83,28 @@ export function ApplicationsTable({
     );
   }
 
-  function patch(row: Application, field: TableField, value: string) {
-    const next: Application = { ...row, timeline: [...row.timeline] };
+  function persist(row: Application, field: TableField, value: string | string[]) {
     if (field === "status") {
-      next.status = value;
-    } else if (field === "rating") {
+      const status = String(value);
+      if (status !== row.status) {
+        void updateStatus(row.id, status);
+      }
+      return;
+    }
+
+    const next: Application = { ...row };
+    if (field === "rating") {
       next.rating = value === "" ? null : Number(value);
     } else if (field === "resumeId") {
       next.resumeId = (value === "" ? null : value) as ResumeId | null;
     } else if (field === "stages") {
-      next.stages = splitList(value);
+      next.stages = Array.isArray(value) ? value : splitList(value);
     } else if (field === "stack") {
-      next.stack = splitList(value);
+      next.stack = Array.isArray(value) ? value : splitList(value);
     } else if (field === "notes") {
-      next.timeline = timelineWithNotes(row.timeline, value);
+      next.timeline = timelineWithNotes(row.timeline, String(value));
     } else {
-      next[field] = value;
+      next[field] = String(value);
     }
     if (field !== "lastUpdated") {
       next.lastUpdated = todayIsoDate();
@@ -92,20 +118,45 @@ export function ApplicationsTable({
         <thead>
           <tr>
             {COLUMNS.map((column) => (
-              <th key={column.key}>{column.label}</th>
+              <th
+                key={column.key}
+                aria-sort={
+                  sortField === column.key
+                    ? sortDirection === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : "none"
+                }
+              >
+                <button
+                  type="button"
+                  className="sort-button"
+                  onClick={() => sortBy(column.key)}
+                >
+                  {column.label}
+                  {sortField === column.key ? (
+                    <span className="sort-indicator" aria-hidden>
+                      {sortDirection === "asc" ? "▲" : "▼"}
+                    </span>
+                  ) : null}
+                </button>
+              </th>
             ))}
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {applications.map((row) => (
-            <tr key={row.id}>
+            <tr key={row.id} className={rowStatusClass(row.status)}>
               {COLUMNS.map((column) => (
                 <td key={column.key}>
                   <Field
                     row={row}
                     field={column.key}
-                    onChange={(value) => patch(row, column.key, value)}
+                    suggestions={suggestions}
+                    remember={remember}
+                    label={column.label}
+                    onSave={(value) => persist(row, column.key, value)}
                   />
                 </td>
               ))}
@@ -129,20 +180,38 @@ export function ApplicationsTable({
 function Field({
   row,
   field,
-  onChange,
+  label,
+  suggestions,
+  remember,
+  onSave,
 }: {
   row: Application;
   field: TableField;
-  onChange: (value: string) => void;
+  label: string;
+  suggestions: string[];
+  remember: (value: string) => void;
+  onSave: (value: string | string[]) => void;
 }) {
-  const handle = (
-    event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
-  ) => onChange(event.target.value);
+  if (field === "jobTitle") {
+    return (
+      <JobTitleCombobox
+        value={row.jobTitle}
+        suggestions={suggestions}
+        onSave={(value) => onSave(value)}
+        onRemember={remember}
+      />
+    );
+  }
 
   if (field === "status") {
     return (
-      <select value={row.status} onChange={handle} aria-label="Status">
-        {statusOptionsFor(row).map((status) => (
+      <select
+        className="inline-cell"
+        value={row.status}
+        aria-label={label}
+        onChange={(event) => onSave(event.target.value)}
+      >
+        {statusOptionsFor(row.stages, row.status).map((status) => (
           <option key={status} value={status}>
             {status}
           </option>
@@ -151,12 +220,22 @@ function Field({
     );
   }
 
+  if (field === "stages") {
+    return (
+      <StagesCell
+        stages={row.stages}
+        onChange={(stages) => onSave(stages)}
+      />
+    );
+  }
+
   if (field === "resumeId") {
     return (
       <select
+        className="inline-cell"
         value={row.resumeId ?? ""}
-        onChange={handle}
-        aria-label="Resume"
+        aria-label={label}
+        onChange={(event) => onSave(event.target.value)}
       >
         <option value="">None</option>
         <option value="en">EN</option>
@@ -165,100 +244,134 @@ function Field({
     );
   }
 
-  if (field === "lastUpdated") {
+  if (field === "nextStep" || field === "lastUpdated") {
     return (
-      <input
+      <InlineTextCell
         type="date"
-        value={row.lastUpdated}
-        onChange={handle}
-        aria-label="Last Updated"
+        value={isoDateValue(row[field])}
+        ariaLabel={label}
+        onSave={onSave}
       />
     );
   }
 
   if (field === "rating") {
     return (
-      <input
+      <InlineTextCell
         type="number"
         min={1}
         max={5}
-        value={row.rating ?? ""}
-        onChange={handle}
-        aria-label="Rating"
+        value={row.rating == null ? "" : String(row.rating)}
+        ariaLabel={label}
+        onSave={onSave}
       />
     );
   }
 
   if (field === "jobUrl") {
     return (
-      <input
+      <InlineTextCell
         type="url"
         value={row.jobUrl}
-        onChange={handle}
-        aria-label="Job URL"
+        ariaLabel={label}
+        onSave={onSave}
       />
     );
   }
 
   if (field === "notes") {
     return (
-      <textarea
-        rows={2}
+      <NotesCell
         value={notesText(row)}
-        onChange={handle}
-        aria-label="Notes"
+        label={label}
+        onSave={(value) => onSave(value)}
       />
     );
   }
 
-  if (field === "stages" || field === "stack") {
+  if (field === "stack") {
     return (
-      <input
-        type="text"
-        value={row[field].join(", ")}
-        onChange={handle}
-        aria-label={field}
+      <InlineTextCell
+        value={row.stack.join(", ")}
+        ariaLabel={label}
+        onSave={onSave}
       />
     );
   }
 
   return (
-    <input
-      type="text"
+    <InlineTextCell
       value={row[field]}
-      onChange={handle}
-      aria-label={field}
+      ariaLabel={label}
+      onSave={onSave}
     />
   );
 }
 
-function statusOptionsFor(row: Application): string[] {
-  const seen = new Set<string>();
-  const options: string[] = [];
-  for (const value of [
-    ...TERMINAL_STATUSES,
-    ...DEFAULT_STAGES,
-    ...row.stages,
-    row.status,
-  ]) {
-    if (!value || seen.has(value)) {
-      continue;
+function NotesCell({
+  value,
+  label,
+  onSave,
+}: {
+  value: string;
+  label: string;
+  onSave: (value: string) => void;
+}) {
+  const [draft, setDraft] = useState(value);
+
+  useEffect(() => {
+    setDraft(value);
+  }, [value]);
+
+  function commit() {
+    if (draft !== value) {
+      onSave(draft);
     }
-    seen.add(value);
-    options.push(value);
   }
-  return options;
+
+  function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      commit();
+      return;
+    }
+    if (event.key === "Escape") {
+      setDraft(value);
+    }
+  }
+
+  return (
+    <textarea
+      className="inline-cell"
+      rows={2}
+      value={draft}
+      aria-label={label}
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={commit}
+      onKeyDown={onKeyDown}
+    />
+  );
 }
 
-function splitList(value: string): string[] {
-  return value.split(",").map((part) => part.trim()).filter(Boolean);
-}
+function useJobTitleSuggestions() {
+  const vocabulary = useVocabularyService();
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
-function notesText(row: Application): string {
-  return row.timeline
-    .filter((entry) => entry.kind === "note")
-    .map((entry) => entry.text)
-    .join("\n");
+  useEffect(() => {
+    void vocabulary.listJobTitles().then(setSuggestions);
+  }, [vocabulary]);
+
+  const remember = useCallback(
+    (title: string) => {
+      void vocabulary
+        .addJobTitle(title)
+        .then(setSuggestions)
+        .catch(() => undefined);
+    },
+    [vocabulary],
+  );
+
+  return { suggestions, remember };
 }
 
 function timelineWithNotes(
@@ -274,4 +387,8 @@ function timelineWithNotes(
     ? { ...existing, text }
     : createTimelineEntry("note", text, todayIsoDate());
   return [...rest, note];
+}
+
+function isoDateValue(value: string): string {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : "";
 }

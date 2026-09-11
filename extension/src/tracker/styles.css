@@ -61,7 +61,7 @@ h1 {
 
 table {
   border-collapse: collapse;
-  min-width: 1400px;
+  min-width: 1600px;
   width: 100%;
 }
 
@@ -81,22 +81,113 @@ th {
   background: #f8fafc;
   position: sticky;
   top: 0;
+  z-index: 1;
 }
 
+.sort-indicator {
+  font-size: 0.65rem;
+}
+
+tbody tr.row-rejected td {
+  background: #fdecec;
+}
+
+tbody tr.row-applied td {
+  background: #fff;
+}
+
+tbody tr.row-in-progress td {
+  background: #eaf7ee;
+}
+
+.inline-cell,
 input,
 select,
 textarea {
   width: 100%;
   min-width: 7rem;
-  border: 1px solid #cfd6e3;
+  border: 1px solid transparent;
   border-radius: 4px;
   padding: 0.35rem 0.4rem;
   font: inherit;
+  background: transparent;
+}
+
+.inline-cell:hover,
+input:hover,
+select:hover,
+textarea:hover {
+  border-color: #e4e9f2;
+}
+
+.inline-cell:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #c5d4f0;
+  background: #fff;
+  outline: 2px solid rgba(31, 78, 216, 0.16);
+  outline-offset: 0;
 }
 
 textarea {
   min-width: 12rem;
   resize: vertical;
+}
+
+.stages-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  align-items: center;
+  min-width: 11rem;
+}
+
+.stages-cell .inline-cell {
+  min-width: 5.5rem;
+  width: auto;
+  flex: 1 1 5.5rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  background: #eef2f8;
+  border-radius: 999px;
+  padding: 0.12rem 0.4rem 0.12rem 0.55rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.combobox {
+  position: relative;
+}
+
+.combobox-list {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0.2rem 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #cfd6e3;
+  border-radius: 4px;
+  max-height: 12rem;
+  overflow: auto;
+  box-shadow: 0 4px 12px rgba(26, 31, 43, 0.12);
+}
+
+.combobox-option {
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+}
+
+.combobox-option.is-active,
+.combobox-option:hover {
+  background: #eef3ff;
 }
 
 button {
@@ -117,4 +208,29 @@ button.primary {
 button.danger {
   color: #9b1c1c;
   border-color: #f0b4b4;
+}
+
+button.sort-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+button.chip-remove {
+  border: none;
+  background: transparent;
+  color: #5b6475;
+  padding: 0;
+  min-width: 0;
+  line-height: 1;
+  font-size: 0.9rem;
 }

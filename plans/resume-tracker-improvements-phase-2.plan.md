@@ -19,7 +19,7 @@ isProject: false
 **Spec:** [`specs/resume-tracker-improvements.spec.md`](../specs/resume-tracker-improvements.spec.md)  
 Full context: [`plans/resume-tracker-improvements.plan.md`](resume-tracker-improvements.plan.md)
 
-**Branch:** `phase/2-table-ux` (base: `main` after Phase 1 merge)  
+**Branch:** `phase/2-table-ux` (base: `phase/1-schema-v2`, already pushed; do **not** merge to `main` yet)  
 **Spec tasks:** T3–T5  
 **Shippable:** No — keep Stack/Contact/Rating/Match/notes in the table until Phase 3 T6 adds the drawer
 
@@ -32,7 +32,7 @@ Full context: [`plans/resume-tracker-improvements.plan.md`](resume-tracker-impro
 #### Session: T3 — Settings vocabulary (job titles, stack tags)
 
 **Todo id:** `5b0c3e40-1d6f-4013-a8e2-3f4a5b6c7d8e`  
-**Depends on:** T1 (Phase 1 merge)  
+**Depends on:** T1 (on `phase/1-schema-v2`)  
 **Focus:** Settings repository; list/add job-title and stack-tag suggestions via Service.
 
 **Verify:** Create a new job title; it is available as a suggestion (full combobox in T5; service/unit test acceptable until then)
@@ -84,4 +84,4 @@ cd extension && npm test && npm run build
 - [ ] T3–T5 complete; YAML todos `completed`
 - [ ] Automated and manual tests pass
 - [ ] Phase 1 regression checks pass
-- [ ] PR `phase/2-table-ux` → `main` merged
+- [ ] Branch pushed; merge to `main` deferred until Phase 3

@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Resume Tracker",
+  "version": "0.1.0",
+  "description": "Track job applications locally and attach stored resumes when you apply.",
+  "background": {
+    "service_worker": "src/background/service-worker.ts",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "Resume Tracker",
+    "default_popup": "src/popup/index.html"
+  }
+}

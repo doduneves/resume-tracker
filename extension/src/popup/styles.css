@@ -1,0 +1,25 @@
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  min-width: 220px;
+}
+
+.popup {
+  padding: 0.9rem 1rem 1rem;
+}
+
+h1 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+button {
+  width: 100%;
+  font: inherit;
+  border: none;
+  border-radius: 6px;
+  background: #1f4ed8;
+  color: #fff;
+  padding: 0.55rem 0.75rem;
+  cursor: pointer;
+}

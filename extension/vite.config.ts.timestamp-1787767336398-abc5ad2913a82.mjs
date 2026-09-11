@@ -1,0 +1,36 @@
+// vite.config.ts
+import { crx } from "file:///mnt/c/Users/eneve/Apps/resume-tracker/extension/node_modules/@crxjs/vite-plugin/dist/index.mjs";
+import react from "file:///mnt/c/Users/eneve/Apps/resume-tracker/extension/node_modules/@vitejs/plugin-react/dist/index.js";
+import { defineConfig } from "file:///mnt/c/Users/eneve/Apps/resume-tracker/extension/node_modules/vite/dist/node/index.js";
+
+// manifest.json
+var manifest_default = {
+  manifest_version: 3,
+  name: "Resume Tracker",
+  version: "0.1.0",
+  description: "Track job applications locally and attach stored resumes when you apply.",
+  background: {
+    service_worker: "src/background/service-worker.ts",
+    type: "module"
+  },
+  action: {
+    default_title: "Resume Tracker",
+    default_popup: "src/popup/index.html"
+  }
+};
+
+// vite.config.ts
+var vite_config_default = defineConfig({
+  plugins: [react(), crx({ manifest: manifest_default })],
+  build: {
+    rollupOptions: {
+      input: {
+        tracker: "src/tracker/index.html"
+      }
+    }
+  }
+});
+export {
+  vite_config_default as default
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsidml0ZS5jb25maWcudHMiLCAibWFuaWZlc3QuanNvbiJdLAogICJzb3VyY2VzQ29udGVudCI6IFsiY29uc3QgX192aXRlX2luamVjdGVkX29yaWdpbmFsX2Rpcm5hbWUgPSBcIi9tbnQvYy9Vc2Vycy9lbmV2ZS9BcHBzL3Jlc3VtZS10cmFja2VyL2V4dGVuc2lvblwiO2NvbnN0IF9fdml0ZV9pbmplY3RlZF9vcmlnaW5hbF9maWxlbmFtZSA9IFwiL21udC9jL1VzZXJzL2VuZXZlL0FwcHMvcmVzdW1lLXRyYWNrZXIvZXh0ZW5zaW9uL3ZpdGUuY29uZmlnLnRzXCI7Y29uc3QgX192aXRlX2luamVjdGVkX29yaWdpbmFsX2ltcG9ydF9tZXRhX3VybCA9IFwiZmlsZTovLy9tbnQvYy9Vc2Vycy9lbmV2ZS9BcHBzL3Jlc3VtZS10cmFja2VyL2V4dGVuc2lvbi92aXRlLmNvbmZpZy50c1wiO2ltcG9ydCB7IGNyeCB9IGZyb20gXCJAY3J4anMvdml0ZS1wbHVnaW5cIjtcclxuaW1wb3J0IHJlYWN0IGZyb20gXCJAdml0ZWpzL3BsdWdpbi1yZWFjdFwiO1xyXG5pbXBvcnQgeyBkZWZpbmVDb25maWcgfSBmcm9tIFwidml0ZVwiO1xyXG5pbXBvcnQgbWFuaWZlc3QgZnJvbSBcIi4vbWFuaWZlc3QuanNvblwiO1xyXG5cclxuZXhwb3J0IGRlZmF1bHQgZGVmaW5lQ29uZmlnKHtcclxuICBwbHVnaW5zOiBbcmVhY3QoKSwgY3J4KHsgbWFuaWZlc3QgfSldLFxyXG4gIGJ1aWxkOiB7XHJcbiAgICByb2xsdXBPcHRpb25zOiB7XHJcbiAgICAgIGlucHV0OiB7XHJcbiAgICAgICAgdHJhY2tlcjogXCJzcmMvdHJhY2tlci9pbmRleC5odG1sXCIsXHJcbiAgICAgIH0sXHJcbiAgICB9LFxyXG4gIH0sXHJcbn0pO1xyXG4iLCAie1xyXG4gIFwibWFuaWZlc3RfdmVyc2lvblwiOiAzLFxyXG4gIFwibmFtZVwiOiBcIlJlc3VtZSBUcmFja2VyXCIsXHJcbiAgXCJ2ZXJzaW9uXCI6IFwiMC4xLjBcIixcclxuICBcImRlc2NyaXB0aW9uXCI6IFwiVHJhY2sgam9iIGFwcGxpY2F0aW9ucyBsb2NhbGx5IGFuZCBhdHRhY2ggc3RvcmVkIHJlc3VtZXMgd2hlbiB5b3UgYXBwbHkuXCIsXHJcbiAgXCJiYWNrZ3JvdW5kXCI6IHtcclxuICAgIFwic2VydmljZV93b3JrZXJcIjogXCJzcmMvYmFja2dyb3VuZC9zZXJ2aWNlLXdvcmtlci50c1wiLFxyXG4gICAgXCJ0eXBlXCI6IFwibW9kdWxlXCJcclxuICB9LFxyXG4gIFwiYWN0aW9uXCI6IHtcclxuICAgIFwiZGVmYXVsdF90aXRsZVwiOiBcIlJlc3VtZSBUcmFja2VyXCIsXHJcbiAgICBcImRlZmF1bHRfcG9wdXBcIjogXCJzcmMvcG9wdXAvaW5kZXguaHRtbFwiXHJcbiAgfVxyXG59XHJcbiJdLAogICJtYXBwaW5ncyI6ICI7QUFBa1UsU0FBUyxXQUFXO0FBQ3RWLE9BQU8sV0FBVztBQUNsQixTQUFTLG9CQUFvQjs7O0FDRjdCO0FBQUEsRUFDRSxrQkFBb0I7QUFBQSxFQUNwQixNQUFRO0FBQUEsRUFDUixTQUFXO0FBQUEsRUFDWCxhQUFlO0FBQUEsRUFDZixZQUFjO0FBQUEsSUFDWixnQkFBa0I7QUFBQSxJQUNsQixNQUFRO0FBQUEsRUFDVjtBQUFBLEVBQ0EsUUFBVTtBQUFBLElBQ1IsZUFBaUI7QUFBQSxJQUNqQixlQUFpQjtBQUFBLEVBQ25CO0FBQ0Y7OztBRFJBLElBQU8sc0JBQVEsYUFBYTtBQUFBLEVBQzFCLFNBQVMsQ0FBQyxNQUFNLEdBQUcsSUFBSSxFQUFFLDJCQUFTLENBQUMsQ0FBQztBQUFBLEVBQ3BDLE9BQU87QUFBQSxJQUNMLGVBQWU7QUFBQSxNQUNiLE9BQU87QUFBQSxRQUNMLFNBQVM7QUFBQSxNQUNYO0FBQUEsSUFDRjtBQUFBLEVBQ0Y7QUFDRixDQUFDOyIsCiAgIm5hbWVzIjogW10KfQo=

@@ -1,10 +1,27 @@
 import type { ChangeEvent } from "react";
 import type { Application } from "../../domain/application";
 import type { ResumeId } from "../../domain/resume";
-import { APPLICATION_STATUSES } from "../../domain/status";
+import { DEFAULT_STAGES, TERMINAL_STATUSES } from "../../domain/status";
+import { createTimelineEntry } from "../../domain/timeline";
 import { todayIsoDate } from "../../application/services/dates";
 
-const COLUMNS: { key: keyof Application; label: string }[] = [
+type TableField =
+  | "company"
+  | "status"
+  | "jobTitle"
+  | "nextStep"
+  | "lastUpdated"
+  | "salary"
+  | "rating"
+  | "matchLevel"
+  | "stack"
+  | "jobUrl"
+  | "resumeId"
+  | "stages"
+  | "contact"
+  | "notes";
+
+const COLUMNS: { key: TableField; label: string }[] = [
   { key: "company", label: "Company" },
   { key: "status", label: "Status" },
   { key: "jobTitle", label: "Job Title" },
@@ -34,7 +51,6 @@ export function ApplicationsTable({
   remove,
   update,
 }: ApplicationsTableProps) {
-
   if (loading) {
     return <p className="muted">Loading applications…</p>;
   }
@@ -47,18 +63,22 @@ export function ApplicationsTable({
     );
   }
 
-  function patch(row: Application, field: keyof Application, value: string) {
-    const next: Application = { ...row };
+  function patch(row: Application, field: TableField, value: string) {
+    const next: Application = { ...row, timeline: [...row.timeline] };
     if (field === "status") {
-      next.status = value as Application["status"];
+      next.status = value;
     } else if (field === "rating") {
       next.rating = value === "" ? null : Number(value);
     } else if (field === "resumeId") {
       next.resumeId = (value === "" ? null : value) as ResumeId | null;
-    } else if (field === "id" || field === "appliedAt") {
-      return;
+    } else if (field === "stages") {
+      next.stages = splitList(value);
+    } else if (field === "stack") {
+      next.stack = splitList(value);
+    } else if (field === "notes") {
+      next.timeline = timelineWithNotes(row.timeline, value);
     } else {
-      next[field] = value as never;
+      next[field] = value;
     }
     if (field !== "lastUpdated") {
       next.lastUpdated = todayIsoDate();
@@ -112,21 +132,17 @@ function Field({
   onChange,
 }: {
   row: Application;
-  field: keyof Application;
+  field: TableField;
   onChange: (value: string) => void;
 }) {
   const handle = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
   ) => onChange(event.target.value);
 
-  if (field === "id" || field === "appliedAt") {
-    return null;
-  }
-
   if (field === "status") {
     return (
       <select value={row.status} onChange={handle} aria-label="Status">
-        {APPLICATION_STATUSES.map((status) => (
+        {statusOptionsFor(row).map((status) => (
           <option key={status} value={status}>
             {status}
           </option>
@@ -188,20 +204,74 @@ function Field({
     return (
       <textarea
         rows={2}
-        value={row.notes}
+        value={notesText(row)}
         onChange={handle}
         aria-label="Notes"
       />
     );
   }
 
-  const value = row[field];
+  if (field === "stages" || field === "stack") {
+    return (
+      <input
+        type="text"
+        value={row[field].join(", ")}
+        onChange={handle}
+        aria-label={field}
+      />
+    );
+  }
+
   return (
     <input
       type="text"
-      value={typeof value === "string" ? value : ""}
+      value={row[field]}
       onChange={handle}
-      aria-label={String(field)}
+      aria-label={field}
     />
   );
+}
+
+function statusOptionsFor(row: Application): string[] {
+  const seen = new Set<string>();
+  const options: string[] = [];
+  for (const value of [
+    ...TERMINAL_STATUSES,
+    ...DEFAULT_STAGES,
+    ...row.stages,
+    row.status,
+  ]) {
+    if (!value || seen.has(value)) {
+      continue;
+    }
+    seen.add(value);
+    options.push(value);
+  }
+  return options;
+}
+
+function splitList(value: string): string[] {
+  return value.split(",").map((part) => part.trim()).filter(Boolean);
+}
+
+function notesText(row: Application): string {
+  return row.timeline
+    .filter((entry) => entry.kind === "note")
+    .map((entry) => entry.text)
+    .join("\n");
+}
+
+function timelineWithNotes(
+  timeline: Application["timeline"],
+  text: string,
+): Application["timeline"] {
+  const rest = timeline.filter((entry) => entry.kind !== "note");
+  if (text === "") {
+    return rest;
+  }
+  const existing = timeline.find((entry) => entry.kind === "note");
+  const note = existing
+    ? { ...existing, text }
+    : createTimelineEntry("note", text, todayIsoDate());
+  return [...rest, note];
 }

@@ -1,21 +1,21 @@
 import type { ResumeId } from "./resume";
-import type { ApplicationStatus } from "./status";
+import type { TimelineEntry } from "./timeline";
 
 export interface Application {
   id: string;
   company: string;
-  status: ApplicationStatus;
+  status: string;
   jobTitle: string;
   nextStep: string;
   lastUpdated: string;
   salary: string;
   rating: number | null;
   matchLevel: string;
-  stack: string;
+  stack: string[];
   jobUrl: string;
   resumeId: ResumeId | null;
-  stages: string;
+  stages: string[];
   contact: string;
-  notes: string;
+  timeline: TimelineEntry[];
   appliedAt: string;
 }

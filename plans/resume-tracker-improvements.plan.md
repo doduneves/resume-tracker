@@ -56,20 +56,22 @@ Per-phase files have their own YAML `todos` (that phase's tasks only). Todos are
 
 ## Branch strategy
 
-Each implementation phase maps to its own git branch for review. Branches merge into `main` in order after the phase passes automated and manual tests.
+Each implementation phase maps to its own git branch. Phases **stack**; **merge to `main` is last** (after Phase 3), not after each phase. PRs may be opened for review; they are not merged until the end.
 
 | Phase | Branch | Base branch | Spec tasks | Plan file |
 |---|---|---|---|---|
-| 1 — Schema v2 and service | `phase/1-schema-v2` | `main` | T1–T2 | `plans/resume-tracker-improvements-phase-1.plan.md` |
-| 2 — Table UX | `phase/2-table-ux` | `main` (after phase 1 merge) | T3–T5 | `plans/resume-tracker-improvements-phase-2.plan.md` |
-| 3 — Drawer and polish | `phase/3-drawer-polish` | `main` (after phase 2 merge) | T6–T7 | `plans/resume-tracker-improvements-phase-3.plan.md` |
+| 1 — Schema v2 and service | `phase/1-schema-v2` | `main` | T1–T2 | `plans/resume-tracker-improvements-phase-1.plan.md` (**pushed, not merged**) |
+| 2 — Table UX | `phase/2-table-ux` | `phase/1-schema-v2` | T3–T5 | `plans/resume-tracker-improvements-phase-2.plan.md` |
+| 3 — Drawer and polish | `phase/3-drawer-polish` | `phase/2-table-ux` | T6–T7 | `plans/resume-tracker-improvements-phase-3.plan.md` |
+
+Final merge: `phase/3-drawer-polish` → `main` (contains Phase 1–3).
 
 **Phase independence rules:**
 
 - Each phase owns a bounded set of layers and files (see **Phase boundary** per phase).
 - Later phases depend only on **stable contracts** from earlier phases (public types, service methods, message shapes)—not internal implementation details.
 - A fix in phase N should change only files owned by phase N (or shared contracts defined up to phase N). It must not require edits to files introduced in phase N+1 or later.
-- If testing phase 3 reveals a bug in phase 1: fix on `phase/1-schema-v2` (or a patch branch off it), merge to `main`, then rebase `phase/3-drawer-polish` onto updated `main`. Later-phase-only code stays untouched.
+- If testing phase 3 reveals a bug in phase 1: fix on `phase/1-schema-v2` (or a patch branch off it), then rebase `phase/2-table-ux` and `phase/3-drawer-polish` onto that fix. Do **not** merge to `main` until Phase 3 is done.
 
 ## Prerequisites
 
@@ -205,7 +207,7 @@ cd extension && npm test && npm run build
 - [ ] Feature flag behavior verified (N/A — no flag)
 - [ ] Automated tests pass (see above)
 - [ ] Manual tests pass (see above)
-- [ ] PR from `phase/1-schema-v2` → `main` reviewed and merged
+- [ ] `phase/1-schema-v2` pushed (merge to `main` deferred until Phase 3)
 
 ---
 
@@ -216,7 +218,7 @@ cd extension && npm test && npm run build
 **Branch:** `phase/2-table-ux`  
 **Spec tasks:** T3, T4, T5  
 **Plan file:** `plans/resume-tracker-improvements-phase-2.plan.md`  
-**Shippable:** No — Stack, Contact, Rating, Match Level, and notes/timeline stay reachable in leftover table columns until Phase 3 T6 adds the drawer. Merge to `main` only as a review checkpoint, or hold the PR until Phase 3 is ready if those fields must not vanish for users.
+**Shippable:** No — Stack, Contact, Rating, Match Level, and notes stay in leftover table columns until Phase 3 T6. Do not merge this branch to `main`; stack Phase 3 on it.
 
 **Phase boundary:**
 
@@ -323,7 +325,7 @@ If UI tests do not exist, add the minimum service/repository tests for T3 before
 - [ ] Automated tests pass
 - [ ] Manual tests pass
 - [ ] Phase 1 regression checks pass
-- [ ] PR from `phase/2-table-ux` → `main` reviewed and merged
+- [ ] `phase/2-table-ux` pushed (merge to `main` deferred until Phase 3)
 
 ---
 
@@ -416,7 +418,7 @@ cd extension && npm test && npm run build
 - [ ] Automated tests pass
 - [ ] Manual tests pass
 - [ ] Phase 1 and Phase 2 regression checks pass
-- [ ] PR from `phase/3-drawer-polish` → `main` reviewed and merged
+- [ ] PR from `phase/3-drawer-polish` → `main` reviewed and merged (only merge to `main` in this plan)
 
 ---
 
@@ -424,8 +426,8 @@ cd extension && npm test && npm run build
 
 | Task / Phase | Blocked by | Notes |
 |---|---|---|
-| Phase 2 | Phase 1 merge | Uses v2 `Application`, Service methods, `settings` store |
-| Phase 3 | Phase 2 merge | Drawer replaces leftover table fields; uses `addNote` / `reject` |
+| Phase 2 | Phase 1 branch (`phase/1-schema-v2`) | Uses v2 `Application`, Service methods, `settings` store; no `main` merge required |
+| Phase 3 | Phase 2 branch (`phase/2-table-ux`) | Drawer replaces leftover table fields; uses `addNote` / `reject`; then PR to `main` |
 | T2 | T1 | Service needs v2 types and repository |
 | T3 | T1 | Settings store created in v2 upgrade |
 | T4 | T2 | Status/row colors assume Service-updated status |

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import type { Application } from "../domain/application";
-import { createTimelineEntry } from "../domain/timeline";
 import {
   compareApplications,
   DEFAULT_SORT_DIRECTION,
@@ -35,21 +34,6 @@ describe("compareApplications", () => {
     const earlier = sample({ id: "a", stages: ["HR Interview"] });
     const rows = [later, earlier].sort((a, b) =>
       compareApplications(a, b, "stages", "asc"),
-    );
-    expect(rows.map((row) => row.id)).toEqual(["a", "b"]);
-  });
-
-  it("sorts notes from timeline text", () => {
-    const beta = sample({
-      id: "b",
-      timeline: [createTimelineEntry("note", "beta", "2026-09-01")],
-    });
-    const alpha = sample({
-      id: "a",
-      timeline: [createTimelineEntry("note", "alpha", "2026-09-01")],
-    });
-    const rows = [beta, alpha].sort((a, b) =>
-      compareApplications(a, b, "notes", "asc"),
     );
     expect(rows.map((row) => row.id)).toEqual(["a", "b"]);
   });

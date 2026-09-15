@@ -1,11 +1,4 @@
-import type { Application } from "../domain/application";
-
-export function notesText(row: Application): string {
-  return row.timeline
-    .filter((entry) => entry.kind === "note")
-    .map((entry) => entry.text)
-    .join("\n");
-}
+import type { TimelineEntry } from "../domain/timeline";
 
 export function rowStatusClass(status: string): string {
   if (status === "Rejected") {
@@ -17,9 +10,26 @@ export function rowStatusClass(status: string): string {
   return "row-in-progress";
 }
 
-export function splitList(value: string): string[] {
-  return value
-    .split(",")
-    .map((part) => part.trim())
-    .filter(Boolean);
+export function formatDisplayDate(iso: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  if (!match) {
+    return iso;
+  }
+  return `${match[3]}/${match[2]}/${match[1]}`;
+}
+
+export function chronologicalTimeline(
+  entries: TimelineEntry[],
+): TimelineEntry[] {
+  return entries
+    .map((entry, index) => ({ entry, index }))
+    .sort((a, b) => {
+      const byDate = a.entry.at.localeCompare(b.entry.at);
+      return byDate !== 0 ? byDate : a.index - b.index;
+    })
+    .map(({ entry }) => entry);
+}
+
+export function isoDateValue(value: string): string {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : "";
 }

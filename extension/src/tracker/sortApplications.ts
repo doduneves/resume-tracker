@@ -1,5 +1,4 @@
 import type { Application } from "../domain/application";
-import { notesText } from "./applicationView";
 
 export type SortableField =
   | "company"
@@ -10,12 +9,7 @@ export type SortableField =
   | "resumeId"
   | "nextStep"
   | "lastUpdated"
-  | "salary"
-  | "rating"
-  | "matchLevel"
-  | "stack"
-  | "contact"
-  | "notes";
+  | "salary";
 
 export type SortDirection = "asc" | "desc";
 
@@ -42,13 +36,8 @@ function fieldValue(
   field: SortableField,
 ): string | number {
   switch (field) {
-    case "rating":
-      return row.rating ?? Number.NEGATIVE_INFINITY;
     case "stages":
-    case "stack":
-      return row[field].join(", ").toLowerCase();
-    case "notes":
-      return notesText(row).toLowerCase();
+      return row.stages.join(", ").toLowerCase();
     case "resumeId":
       return row.resumeId ?? "";
     default:

@@ -41,11 +41,6 @@ describe("ApplicationsTable", () => {
       "Next step",
       "Last Updated▼",
       "Salary",
-      "Rating",
-      "Match Level",
-      "Stack",
-      "Contact",
-      "Notes",
       "Actions",
     ]);
 
@@ -55,6 +50,12 @@ describe("ApplicationsTable", () => {
     expect(container.querySelector("tr.row-applied")).not.toBeNull();
     expect(container.querySelector("tr.row-in-progress")).not.toBeNull();
     expect(container.querySelector("tr.row-rejected")).not.toBeNull();
+    expect(
+      container.querySelector('button[aria-label="Open details"]'),
+    ).not.toBeNull();
+    expect(
+      container.querySelector('button[aria-label="Delete"]'),
+    ).not.toBeNull();
 
     expect(container.querySelector('[aria-label="Add stage"]')).not.toBeNull();
     expect(
@@ -68,6 +69,7 @@ describe("ApplicationsTable", () => {
   it("lists terminals plus that row’s stages and saves status through updateStatus", async () => {
     const update = vi.fn();
     const updateStatus = vi.fn();
+    const onRejectRequest = vi.fn();
     const view = await renderTable({
       applications: [
         sample({
@@ -78,6 +80,7 @@ describe("ApplicationsTable", () => {
       ],
       update,
       updateStatus,
+      onRejectRequest,
     });
     container = view.container;
     root = view.root;
@@ -97,6 +100,62 @@ describe("ApplicationsTable", () => {
 
     expect(updateStatus).toHaveBeenCalledWith("row-1", "Offer");
     expect(update).not.toHaveBeenCalled();
+    expect(onRejectRequest).not.toHaveBeenCalled();
+  });
+
+  it("opens the rejection flow instead of updateStatus when Rejected is chosen", async () => {
+    const updateStatus = vi.fn();
+    const onRejectRequest = vi.fn();
+    const view = await renderTable({
+      applications: [sample({ id: "row-1", status: "Applied" })],
+      updateStatus,
+      onRejectRequest,
+    });
+    container = view.container;
+    root = view.root;
+
+    const statusSelect = container.querySelector(
+      'select[aria-label="Status"]',
+    ) as HTMLSelectElement;
+
+    act(() => {
+      statusSelect.value = "Rejected";
+      statusSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    expect(onRejectRequest).toHaveBeenCalledWith("row-1");
+    expect(updateStatus).not.toHaveBeenCalled();
+  });
+
+  it("deletes a row only after confirm", async () => {
+    const remove = vi.fn();
+    const confirm = vi.spyOn(window, "confirm");
+    const view = await renderTable({
+      applications: [sample({ id: "row-1" })],
+      remove,
+    });
+    container = view.container;
+    root = view.root;
+
+    const deleteButton = container.querySelector(
+      'button[aria-label="Delete"]',
+    ) as HTMLButtonElement;
+
+    try {
+      confirm.mockReturnValueOnce(false);
+      act(() => {
+        deleteButton.click();
+      });
+      expect(remove).not.toHaveBeenCalled();
+
+      confirm.mockReturnValueOnce(true);
+      act(() => {
+        deleteButton.click();
+      });
+      expect(remove).toHaveBeenCalledWith("row-1");
+    } finally {
+      confirm.mockRestore();
+    }
   });
 });
 
@@ -104,10 +163,14 @@ async function renderTable({
   applications,
   update = () => undefined,
   updateStatus = () => undefined,
+  onRejectRequest = () => undefined,
+  remove = () => undefined,
 }: {
   applications: Application[];
   update?: () => void;
   updateStatus?: (id: string, status: string) => void;
+  onRejectRequest?: (id: string) => void;
+  remove?: (id: string) => void;
 }) {
   const container = document.createElement("div");
   document.body.append(container);
@@ -123,9 +186,12 @@ async function renderTable({
         <ApplicationsTable
           applications={applications}
           loading={false}
-          remove={() => undefined}
+          selectedId={null}
+          remove={remove}
           update={update}
           updateStatus={updateStatus}
+          onOpenDetails={() => undefined}
+          onRejectRequest={onRejectRequest}
           sortField="lastUpdated"
           sortDirection="desc"
           sortBy={() => undefined}

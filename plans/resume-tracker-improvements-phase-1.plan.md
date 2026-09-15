@@ -16,7 +16,7 @@ isProject: false
 **Spec:** [`specs/resume-tracker-improvements.spec.md`](../specs/resume-tracker-improvements.spec.md)  
 Full context: [`plans/resume-tracker-improvements.plan.md`](resume-tracker-improvements.plan.md)
 
-**Branch:** `phase/1-schema-v2` (base: `main`)  
+**Branch:** `phase/1-schema-v2` (base: `main`; **pushed, not merged** — merge to `main` after Phase 3)  
 **Spec tasks:** T1–T2  
 **Shippable:** Yes — migrated data plus Service contract; table UX still Phase 1-like
 
@@ -71,4 +71,4 @@ cd extension && npm test && npm run build
 - [ ] Migration verified (v1 data and fresh install)
 - [ ] `npm test` and `npm run build` pass
 - [ ] Manual tests pass
-- [ ] PR `phase/1-schema-v2` → `main` merged
+- [ ] Branch pushed; merge to `main` deferred until Phase 3

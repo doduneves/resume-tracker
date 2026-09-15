@@ -16,7 +16,7 @@ isProject: false
 **Spec:** [`specs/resume-tracker-improvements.spec.md`](../specs/resume-tracker-improvements.spec.md)  
 Full context: [`plans/resume-tracker-improvements.plan.md`](resume-tracker-improvements.plan.md)
 
-**Branch:** `phase/3-drawer-polish` (base: `main` after Phase 2 merge)  
+**Branch:** `phase/3-drawer-polish` (base: `phase/2-table-ux`; this is the branch that eventually PRs to `main`)  
 **Spec tasks:** T6–T7  
 **Shippable:** Yes — tracker UX v2 complete; capture still out of scope
 

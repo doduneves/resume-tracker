@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Application } from "../../domain/application";
-import { useApplicationService } from "./ApplicationServiceContext";
 import {
   compareApplications,
   DEFAULT_SORT_DIRECTION,
@@ -8,6 +7,7 @@ import {
   type SortDirection,
   type SortableField,
 } from "../sortApplications";
+import { useApplicationService } from "./ApplicationServiceContext";
 
 export function useApplications() {
   const service = useApplicationService();
@@ -91,6 +91,32 @@ export function useApplications() {
     [refresh, service],
   );
 
+  const addNote = useCallback(
+    async (id: string, text: string) => {
+      try {
+        await service.addNote(id, text);
+        await refresh();
+      } catch (cause) {
+        setError(cause instanceof Error ? cause.message : "Failed to add note");
+      }
+    },
+    [refresh, service],
+  );
+
+  const reject = useCallback(
+    async (id: string, reason?: string) => {
+      try {
+        await service.reject(id, reason);
+        await refresh();
+      } catch (cause) {
+        setError(
+          cause instanceof Error ? cause.message : "Failed to reject application",
+        );
+      }
+    },
+    [refresh, service],
+  );
+
   const remove = useCallback(
     async (id: string) => {
       try {
@@ -112,6 +138,8 @@ export function useApplications() {
     add,
     update,
     updateStatus,
+    addNote,
+    reject,
     remove,
     sortField,
     sortDirection,

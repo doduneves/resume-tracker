@@ -1,17 +1,13 @@
-import { useCallback, useEffect, useState, type KeyboardEvent } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { todayIsoDate } from "../../application/services/dates";
 import type { Application } from "../../domain/application";
 import type { ResumeId } from "../../domain/resume";
 import { statusOptionsFor } from "../../domain/status";
-import { createTimelineEntry } from "../../domain/timeline";
 import { useVocabularyService } from "../hooks/VocabularyServiceContext";
-import {
-  notesText,
-  rowStatusClass,
-  splitList,
-} from "../applicationView";
+import { isoDateValue, rowStatusClass } from "../applicationView";
 import type { SortDirection, SortableField } from "../sortApplications";
 import { InlineTextCell } from "./InlineTextCell";
+import { DeleteIcon, DetailsIcon } from "./icons";
 import { JobTitleCombobox } from "./JobTitleCombobox";
 import { StagesCell } from "./StagesCell";
 
@@ -24,12 +20,7 @@ type TableField =
   | "resumeId"
   | "nextStep"
   | "lastUpdated"
-  | "salary"
-  | "rating"
-  | "matchLevel"
-  | "stack"
-  | "contact"
-  | "notes";
+  | "salary";
 
 const COLUMNS: { key: TableField; label: string }[] = [
   { key: "company", label: "Company" },
@@ -41,19 +32,17 @@ const COLUMNS: { key: TableField; label: string }[] = [
   { key: "nextStep", label: "Next step" },
   { key: "lastUpdated", label: "Last Updated" },
   { key: "salary", label: "Salary" },
-  { key: "rating", label: "Rating" },
-  { key: "matchLevel", label: "Match Level" },
-  { key: "stack", label: "Stack" },
-  { key: "contact", label: "Contact" },
-  { key: "notes", label: "Notes" },
 ];
 
 type ApplicationsTableProps = {
   applications: Application[];
   loading: boolean;
+  selectedId: string | null;
   remove: (id: string) => Promise<void> | void;
   update: (application: Application) => Promise<void> | void;
   updateStatus: (id: string, status: string) => Promise<void> | void;
+  onOpenDetails: (id: string) => void;
+  onRejectRequest: (id: string) => void;
   sortField: SortableField;
   sortDirection: SortDirection;
   sortBy: (field: SortableField) => void;
@@ -62,9 +51,12 @@ type ApplicationsTableProps = {
 export function ApplicationsTable({
   applications,
   loading,
+  selectedId,
   remove,
   update,
   updateStatus,
+  onOpenDetails,
+  onRejectRequest,
   sortField,
   sortDirection,
   sortBy,
@@ -86,6 +78,10 @@ export function ApplicationsTable({
   function persist(row: Application, field: TableField, value: string | string[]) {
     if (field === "status") {
       const status = String(value);
+      if (status === "Rejected") {
+        onRejectRequest(row.id);
+        return;
+      }
       if (status !== row.status) {
         void updateStatus(row.id, status);
       }
@@ -93,16 +89,10 @@ export function ApplicationsTable({
     }
 
     const next: Application = { ...row };
-    if (field === "rating") {
-      next.rating = value === "" ? null : Number(value);
-    } else if (field === "resumeId") {
+    if (field === "resumeId") {
       next.resumeId = (value === "" ? null : value) as ResumeId | null;
     } else if (field === "stages") {
-      next.stages = Array.isArray(value) ? value : splitList(value);
-    } else if (field === "stack") {
-      next.stack = Array.isArray(value) ? value : splitList(value);
-    } else if (field === "notes") {
-      next.timeline = timelineWithNotes(row.timeline, String(value));
+      next.stages = Array.isArray(value) ? value : [String(value)];
     } else {
       next[field] = String(value);
     }
@@ -147,7 +137,15 @@ export function ApplicationsTable({
         </thead>
         <tbody>
           {applications.map((row) => (
-            <tr key={row.id} className={rowStatusClass(row.status)}>
+            <tr
+              key={row.id}
+              className={[
+                rowStatusClass(row.status),
+                selectedId === row.id ? "is-selected" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >
               {COLUMNS.map((column) => (
                 <td key={column.key}>
                   <Field
@@ -160,13 +158,26 @@ export function ApplicationsTable({
                   />
                 </td>
               ))}
-              <td>
+              <td className="actions-cell">
                 <button
                   type="button"
-                  className="danger"
-                  onClick={() => void remove(row.id)}
+                  className="icon-button"
+                  aria-label="Open details"
+                  onClick={() => onOpenDetails(row.id)}
                 >
-                  Delete
+                  <DetailsIcon />
+                </button>
+                <button
+                  type="button"
+                  className="icon-button danger"
+                  aria-label="Delete"
+                  onClick={() => {
+                    if (window.confirm("Delete this application?")) {
+                      void remove(row.id);
+                    }
+                  }}
+                >
+                  <DeleteIcon />
                 </button>
               </td>
             </tr>
@@ -255,19 +266,6 @@ function Field({
     );
   }
 
-  if (field === "rating") {
-    return (
-      <InlineTextCell
-        type="number"
-        min={1}
-        max={5}
-        value={row.rating == null ? "" : String(row.rating)}
-        ariaLabel={label}
-        onSave={onSave}
-      />
-    );
-  }
-
   if (field === "jobUrl") {
     return (
       <InlineTextCell
@@ -279,76 +277,11 @@ function Field({
     );
   }
 
-  if (field === "notes") {
-    return (
-      <NotesCell
-        value={notesText(row)}
-        label={label}
-        onSave={(value) => onSave(value)}
-      />
-    );
-  }
-
-  if (field === "stack") {
-    return (
-      <InlineTextCell
-        value={row.stack.join(", ")}
-        ariaLabel={label}
-        onSave={onSave}
-      />
-    );
-  }
-
   return (
     <InlineTextCell
       value={row[field]}
       ariaLabel={label}
       onSave={onSave}
-    />
-  );
-}
-
-function NotesCell({
-  value,
-  label,
-  onSave,
-}: {
-  value: string;
-  label: string;
-  onSave: (value: string) => void;
-}) {
-  const [draft, setDraft] = useState(value);
-
-  useEffect(() => {
-    setDraft(value);
-  }, [value]);
-
-  function commit() {
-    if (draft !== value) {
-      onSave(draft);
-    }
-  }
-
-  function onKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      commit();
-      return;
-    }
-    if (event.key === "Escape") {
-      setDraft(value);
-    }
-  }
-
-  return (
-    <textarea
-      className="inline-cell"
-      rows={2}
-      value={draft}
-      aria-label={label}
-      onChange={(event) => setDraft(event.target.value)}
-      onBlur={commit}
-      onKeyDown={onKeyDown}
     />
   );
 }
@@ -372,23 +305,4 @@ function useJobTitleSuggestions() {
   );
 
   return { suggestions, remember };
-}
-
-function timelineWithNotes(
-  timeline: Application["timeline"],
-  text: string,
-): Application["timeline"] {
-  const rest = timeline.filter((entry) => entry.kind !== "note");
-  if (text === "") {
-    return rest;
-  }
-  const existing = timeline.find((entry) => entry.kind === "note");
-  const note = existing
-    ? { ...existing, text }
-    : createTimelineEntry("note", text, todayIsoDate());
-  return [...rest, note];
-}
-
-function isoDateValue(value: string): string {
-  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : "";
 }

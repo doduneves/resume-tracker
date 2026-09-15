@@ -61,7 +61,7 @@ h1 {
 
 table {
   border-collapse: collapse;
-  min-width: 1600px;
+  min-width: 1100px;
   width: 100%;
 }
 
@@ -135,7 +135,7 @@ textarea {
   resize: vertical;
 }
 
-.stages-cell {
+.chip-list {
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem;
@@ -143,7 +143,7 @@ textarea {
   min-width: 11rem;
 }
 
-.stages-cell .inline-cell {
+.chip-list .inline-cell {
   min-width: 5.5rem;
   width: auto;
   flex: 1 1 5.5rem;
@@ -233,4 +233,146 @@ button.chip-remove {
   min-width: 0;
   line-height: 1;
   font-size: 0.9rem;
+}
+
+.layout {
+  display: flex;
+  align-items: flex-start;
+  min-height: 100vh;
+}
+
+.layout-with-drawer .page {
+  flex: 1;
+  min-width: 0;
+}
+
+.drawer {
+  flex: 0 0 22rem;
+  width: 22rem;
+  min-height: 100vh;
+  padding: 1.25rem 1.1rem 1.75rem;
+  background: #fff;
+  border-right: 1px solid #d8dee8;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  outline: none;
+}
+
+.drawer-header h2 {
+  margin: 0.1rem 0 0.15rem;
+  font-size: 1.15rem;
+}
+
+.drawer-kicker {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #5b6475;
+}
+
+.drawer-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #5b6475;
+}
+
+.drawer-timeline h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #5b6475;
+}
+
+.timeline-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 6.2rem 1rem 1fr;
+  gap: 0.25rem;
+  padding: 0.25rem 0;
+  font-size: 0.9rem;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #1a1f2b;
+}
+
+.timeline-date {
+  color: #5b6475;
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-item.timeline-note .timeline-text {
+  font-style: italic;
+}
+
+.timeline-item.timeline-rejection_reason .timeline-text {
+  color: #5b6475;
+}
+
+.actions-cell {
+  white-space: nowrap;
+}
+
+.actions-cell button {
+  margin-right: 0.35rem;
+}
+
+button.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+}
+
+button.add-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+tbody tr.is-selected td {
+  box-shadow: inset 3px 0 0 #1f4ed8;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(26, 31, 43, 0.35);
+}
+
+.modal {
+  width: min(28rem, calc(100% - 2rem));
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.1rem 1.15rem 1.15rem;
+  box-shadow: 0 12px 32px rgba(26, 31, 43, 0.18);
+}
+
+.modal h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
 }

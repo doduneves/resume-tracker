@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { PlusIcon } from "./icons";
 
 type AddApplicationRowProps = {
@@ -6,9 +7,9 @@ type AddApplicationRowProps = {
 
 export function AddApplicationRow({ onAdd }: AddApplicationRowProps) {
   return (
-    <button type="button" className="primary add-row" onClick={() => void onAdd()}>
+    <Button type="button" onClick={() => void onAdd()}>
       <PlusIcon />
       Add row
-    </button>
+    </Button>
   );
 }

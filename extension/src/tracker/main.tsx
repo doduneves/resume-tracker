@@ -4,6 +4,7 @@ import { createTrackerServices } from "../bootstrap";
 import { App } from "./App";
 import { ApplicationServiceProvider } from "./hooks/ApplicationServiceContext";
 import { VocabularyServiceProvider } from "./hooks/VocabularyServiceContext";
+import "../index.css";
 import "./styles.css";
 
 async function boot() {

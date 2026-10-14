@@ -28,7 +28,7 @@ describe("RejectionDialog", () => {
     });
 
     act(() => {
-      container.querySelector("button")?.click();
+      document.body.querySelector("button")?.click();
     });
     expect(onCancel).toHaveBeenCalledOnce();
     expect(onConfirm).not.toHaveBeenCalled();
@@ -39,7 +39,9 @@ describe("RejectionDialog", () => {
       );
     });
 
-    const textarea = container.querySelector("textarea") as HTMLTextAreaElement;
+    const textarea = document.body.querySelector(
+      "textarea",
+    ) as HTMLTextAreaElement;
     act(() => {
       const setter = Object.getOwnPropertyDescriptor(
         HTMLTextAreaElement.prototype,
@@ -47,7 +49,7 @@ describe("RejectionDialog", () => {
       )?.set;
       setter?.call(textarea, "Headcount freeze");
       textarea.dispatchEvent(new Event("input", { bubbles: true }));
-      const confirm = [...container.querySelectorAll("button")].find(
+      const confirm = [...document.body.querySelectorAll("button")].find(
         (button) => button.textContent === "Confirm",
       );
       confirm?.click();

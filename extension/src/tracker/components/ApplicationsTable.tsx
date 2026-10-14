@@ -6,6 +6,7 @@ import { statusOptionsFor } from "../../domain/status";
 import { useVocabularyService } from "../hooks/VocabularyServiceContext";
 import { isoDateValue, rowStatusClass } from "../applicationView";
 import type { SortDirection, SortableField } from "../sortApplications";
+import { Button } from "@/components/ui/button";
 import { InlineTextCell } from "./InlineTextCell";
 import { DeleteIcon, DetailsIcon } from "./icons";
 import { JobTitleCombobox } from "./JobTitleCombobox";
@@ -159,17 +160,20 @@ export function ApplicationsTable({
                 </td>
               ))}
               <td className="actions-cell">
-                <button
+                <Button
                   type="button"
-                  className="icon-button"
+                  size="icon"
+                  variant="outline"
                   aria-label="Open details"
                   onClick={() => onOpenDetails(row.id)}
                 >
                   <DetailsIcon />
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
-                  className="icon-button danger"
+                  size="icon"
+                  variant="outline"
+                  className="border-[#f0b4b4] text-[#9b1c1c] hover:bg-transparent hover:text-[#9b1c1c]"
                   aria-label="Delete"
                   onClick={() => {
                     if (window.confirm("Delete this application?")) {
@@ -178,7 +182,7 @@ export function ApplicationsTable({
                   }}
                 >
                   <DeleteIcon />
-                </button>
+                </Button>
               </td>
             </tr>
           ))}

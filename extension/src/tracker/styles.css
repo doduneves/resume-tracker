@@ -190,7 +190,7 @@ textarea {
   background: #eef3ff;
 }
 
-button {
+.drawer button {
   font: inherit;
   border-radius: 6px;
   border: 1px solid #c5ccd8;
@@ -199,18 +199,13 @@ button {
   cursor: pointer;
 }
 
-button.primary {
+.drawer button.primary {
   background: #1f4ed8;
   border-color: #1f4ed8;
   color: #fff;
 }
 
-button.danger {
-  color: #9b1c1c;
-  border-color: #f0b4b4;
-}
-
-button.sort-button {
+.sort-button {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
@@ -223,16 +218,19 @@ button.sort-button {
   font: inherit;
   letter-spacing: inherit;
   text-transform: inherit;
+  cursor: pointer;
 }
 
-button.chip-remove {
+.chip-remove {
   border: none;
   background: transparent;
   color: #5b6475;
   padding: 0;
   min-width: 0;
   line-height: 1;
+  font: inherit;
   font-size: 0.9rem;
+  cursor: pointer;
 }
 
 .layout {
@@ -328,51 +326,6 @@ button.chip-remove {
   margin-right: 0.35rem;
 }
 
-button.icon-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  padding: 0;
-}
-
-button.add-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
 tbody tr.is-selected td {
   box-shadow: inset 3px 0 0 #1f4ed8;
-}
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(26, 31, 43, 0.35);
-}
-
-.modal {
-  width: min(28rem, calc(100% - 2rem));
-  background: #fff;
-  border-radius: 8px;
-  padding: 1.1rem 1.15rem 1.15rem;
-  box-shadow: 0 12px 32px rgba(26, 31, 43, 0.18);
-}
-
-.modal h2 {
-  margin: 0 0 0.35rem;
-  font-size: 1.15rem;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 0.85rem;
 }
